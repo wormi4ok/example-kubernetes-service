@@ -1,8 +1,9 @@
+APP=favorite-tree
 
 test:
 	go test ./...
 
 build:
-	go build -v -o ./favorite-tree
+	docker build . -t $(APP):test
 
 .PHONY: test build
