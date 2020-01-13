@@ -1,7 +1,7 @@
 # My favorite tree 🌳
 
 This is a simple HTTP service that returns an information about my favorite tree in JSON format.
-It comes with a sample configuration to deploy to Kubernetes cluster 
+It comes with a sample configuration to deploy to Kubernetes cluster.
 
 ## API
 
@@ -9,17 +9,17 @@ It comes with a sample configuration to deploy to Kubernetes cluster
 
 ## Requirements
 
-To build an application
+To build an application:
 
-* golang v1 (tested with 1.13)
+* [golang](https://golang.org/dl/) v1 (tested with 1.13)
 
 No dependency management needed. I decided not to use any external libraries, due to the simplicity of the API.
 
-To deploy to minikube
+To deploy to minikube:
 
-* minikube with ingress add-on enabled
-* docker
-* kubectl
+* [minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) with ingress add-on enabled
+* [docker](https://docs.docker.com/install/)
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 
 ## Deployment
 
@@ -28,7 +28,7 @@ Run the given command in the project root directory and follow the instructions:
 make
 ```
 
-To see all available option, use `make help`
+To see all available options, use `make help`
 
 --------------
 
