@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"strings"
+	"syscall"
 	"time"
 )
 
@@ -25,9 +29,14 @@ func main() {
 	}
 	log.Printf("Starting service on port %s...\n", port)
 
-	if err := srv.ListenAndServe(); err != nil {
-		log.Printf("%v\n", err)
-	}
+	// Running in goroutine so we can shutdown gracefully
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Printf("%v\n", err)
+		}
+	}()
+
+	handleServerShutdown(srv)
 }
 
 type response struct {
@@ -56,4 +65,19 @@ func portFromEnv() string {
 		log.Printf("PORT env var is not specified, using default: %s", port)
 	}
 	return port
+}
+
+func handleServerShutdown(srv *http.Server) {
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+
+	s := <-signals
+
+	log.Printf("Got %s signal, shutting down server...\n", strings.ToUpper(s.String()))
+	// Wait for 5 seconds before shutting down
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	srv.Shutdown(ctx)
+	os.Exit(0)
 }
