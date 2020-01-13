@@ -1,0 +1,14 @@
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ecosia-test
+spec:
+  rules:
+  - host: local.ecosia.org
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: favorite-tree
+          servicePort: 80

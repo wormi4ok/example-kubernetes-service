@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: favorite-tree
+  labels:
+    app: favorite-tree
+spec:
+  template:
+    metadata:
+      name: favorite-tree
+      labels:
+        app: favorite-tree
+    spec:
+      containers:
+        - name: http
+          image: favorite-tree:test
+          imagePullPolicy: Never # Use locally built image
+          ports:
+          - name: http
+            containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /tree
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /tree
+              port: http
+  selector:
+    matchLabels:
+      app: favorite-tree
+
