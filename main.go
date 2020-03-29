@@ -18,7 +18,7 @@ import (
 	"go.opencensus.io/tag"
 )
 
-const myFavouriteTree = "Birch"
+const helloMsg = "Infrastructure enables innovation"
 const defaultPort = "8080"
 
 func main() {
@@ -44,7 +44,7 @@ func main() {
 	)
 
 	http.Handle("/metrics", ochttp.WithRouteTag(pe, "/metrics"))
-	http.Handle("/tree", ochttp.WithRouteTag(treeHandler(myFavouriteTree), "/tree"))
+	http.Handle("/hello", ochttp.WithRouteTag(helloHandler(helloMsg), "/hello"))
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", port),
@@ -66,10 +66,10 @@ func main() {
 }
 
 type response struct {
-	MyFavouriteTree string `json:"myFavouriteTree"`
+	HelloMsg string `json:"helloMsg"`
 }
 
-func treeHandler(favouriteTree string) http.HandlerFunc {
+func helloHandler(helloMsg string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			w.WriteHeader(404)
@@ -77,7 +77,7 @@ func treeHandler(favouriteTree string) http.HandlerFunc {
 		}
 		w.Header().Set("Content-Type", "application/json") // RFC-4627
 		w.WriteHeader(200)
-		err := json.NewEncoder(w).Encode(response{MyFavouriteTree: favouriteTree})
+		err := json.NewEncoder(w).Encode(response{HelloMsg: helloMsg})
 		if err != nil {
 			log.Printf("TreeHandler error: %v", err)
 			w.WriteHeader(500)

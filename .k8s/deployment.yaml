@@ -2,38 +2,38 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: favorite-tree
+  name: example-deployment
   labels:
-    app: favorite-tree
+    app: example-app
 spec:
   template:
     metadata:
-      name: favorite-tree
+      name: example-pod
       labels:
-        app: favorite-tree
+        app: example-app
     spec:
       containers:
+      - name: http
+        image: example-service:test
+        imagePullPolicy: Never # Use locally built image
+        ports:
         - name: http
-          image: favorite-tree:test
-          imagePullPolicy: Never # Use locally built image
-          ports:
-          - name: http
-            containerPort: 8080
-          readinessProbe:
-            httpGet:
-              path: /tree
-              port: http
-          livenessProbe:
-            httpGet:
-              path: /tree
-              port: http
-          resources:
-            requests:
-              cpu: 100m
-              memory: 100Mi
-            limits:
-              memory: 100Mi
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /hello
+            port: http
+        livenessProbe:
+          httpGet:
+            path: /hello
+            port: http
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            memory: 100Mi
   selector:
     matchLabels:
-      app: favorite-tree
+      app: example-app
 

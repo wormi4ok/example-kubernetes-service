@@ -12,10 +12,10 @@ import (
 )
 
 func TestTreeHandler(t *testing.T) {
-	srv := httptest.NewServer(treeHandler(myFavouriteTree))
+	srv := httptest.NewServer(helloHandler(helloMsg))
 	defer srv.Close()
 
-	req := httptest.NewRequest(http.MethodGet, srv.URL+"/tree", nil)
+	req := httptest.NewRequest(http.MethodGet, srv.URL+"/hello", nil)
 	req.RequestURI = "" // Request.RequestURI can't be set in client requests
 	res, err := srv.Client().Do(req)
 	if err != nil {
@@ -34,7 +34,7 @@ func TestTreeHandler(t *testing.T) {
 	}
 
 	// Compare response body with expected
-	expected := []byte("{\"myFavouriteTree\":\"Birch\"}\n")
+	expected := []byte("{\"helloMsg\":\"Infrastructure enables innovation\"}\n")
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil || bytes.Compare(expected, b) != 0 {
 		t.Errorf("Expected response body = %s, actual = %s", expected, b)

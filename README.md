@@ -1,11 +1,11 @@
-# My favorite tree 🌳
+# Example kubernetes service
 
-This is a simple HTTP service that returns an information about my favorite tree in JSON format.
+This is a simple HTTP service that returns a hello message in JSON format.
 It comes with a sample configuration to deploy to Kubernetes cluster.
 
 ## API
 
-`GET /tree` - returns my favorite tree in the format: `{"myFavouriteTree":<NAME>}`
+`GET /hello` - returns hello message in the format: `{"helloMsg":<TEXT>}`
 
 ## Requirements
 
@@ -29,10 +29,3 @@ make
 ```
 
 To see all available options, use `make help`
-
---------------
-
-This repository is created as a solution for the technical test assignment for [Ecosia](https://ecosia.org)
-
-![Birch tree](birch-tree.jpg)
-Photo by [Peng Chen](https://unsplash.com/@austincppc) on Unsplash

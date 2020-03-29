@@ -1,4 +1,4 @@
-APP=favorite-tree
+APP:=$(notdir $(patsubst %/,%, $(CURDIR)))
 
 all: test build deploy
 
@@ -19,7 +19,7 @@ deploy:
 	kubectl wait --for=condition=available --timeout=60s deployment/$(APP)
 	echo ""
 	echo "Service is available. You can test in using curl:"
-	echo "curl -X GET http://$$(minikube ip):80/tree -H 'Host:local.ecosia.org'"
+	echo "curl -X GET http://$$(minikube ip):80/hello -H 'Host:local.example.test'"
 
 ## destroy: delete entities deployed to kubernetes cluster
 destroy:
@@ -27,7 +27,7 @@ destroy:
 
 ## help: print this information
 help: Makefile
-	echo ' Choose a command to run in ecosia-test:'
+	echo ' Choose a command to run in $(APP):'
 	sed -n 's/^##//p' $< | column -t -s ':' | sed -e 's/^/ /'
 
 .PHONY: test build deploy destroy
