@@ -1,9 +1,9 @@
-FROM golang:1.13 AS builder
+FROM golang:1.14 AS builder
 
 COPY . /go/src/example-kubernetes-service
 WORKDIR /go/src/example-kubernetes-service
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /go/bin/example-kubernetes-service.
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /go/bin/example-kubernetes-service .
 
 FROM alpine:3.11
 

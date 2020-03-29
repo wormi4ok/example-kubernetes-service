@@ -1,6 +1,6 @@
 module github.com/wormi4ok/example-kubernetes-service
 
-go 1.13
+go 1.14
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0

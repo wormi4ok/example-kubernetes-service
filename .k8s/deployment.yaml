@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: example-deployment
+  name: example-kubernetes-service
   labels:
     app: example-app
 spec:
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: http
-        image: example-service:test
+        image: example-kubernetes-service:test
         imagePullPolicy: Never # Use locally built image
         ports:
         - name: http

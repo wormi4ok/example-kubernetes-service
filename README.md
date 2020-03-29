@@ -11,9 +11,7 @@ It comes with a sample configuration to deploy to Kubernetes cluster.
 
 To build an application:
 
-* [golang](https://golang.org/dl/) v1 (tested with 1.13)
-
-No dependency management needed. I decided not to use any external libraries, due to the simplicity of the API.
+* [golang](https://golang.org/dl/) v1 (tested with 1.14)
 
 To deploy to minikube:
 
