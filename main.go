@@ -79,7 +79,7 @@ func helloHandler(helloMsg string) http.HandlerFunc {
 		w.WriteHeader(200)
 		err := json.NewEncoder(w).Encode(response{HelloMsg: helloMsg})
 		if err != nil {
-			log.Printf("TreeHandler error: %v", err)
+			log.Printf("HelloHandler error: %v", err)
 			w.WriteHeader(500)
 		}
 	}
