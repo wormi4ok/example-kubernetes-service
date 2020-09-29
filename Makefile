@@ -8,7 +8,7 @@ test:
 
 ## build: build docker-image in minikube
 build:
-	eval $$(minikube docker-env --shell='$(SHELL)'); \
+	eval $$(minikube -p minikube docker-env --shell='$(SHELL)'); \
 	docker build . -t $(APP):test
 
 ## deploy: apply kubernetes manifests files in the current context
