@@ -14,6 +14,7 @@ import (
 
 	"contrib.go.opencensus.io/exporter/prometheus"
 	"github.com/akyoto/cache"
+	"github.com/kelseyhightower/envconfig"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -22,10 +23,15 @@ import (
 )
 
 const helloMsg = "Wherever you go, no matter what the weather, always bring your own sunshine.\n"
-const defaultPort = "8080"
+
+type Config struct {
+	SenseBoxIDs []string `envconfig:"sense_box_ids" required:"true"`
+	ListenPort  int      `split_words:"true" default:"8080"`
+}
 
 func main() {
-	port := portFromEnv()
+	c := new(Config)
+	envconfig.MustProcess("", c)
 
 	pe, err := prometheus.NewExporter(prometheus.Options{
 		Namespace: "",
@@ -54,21 +60,19 @@ func main() {
 		Transport: &ochttp.Transport{}, // Collect metrics on the HTTP client
 	}
 	client := opensensemap.NewClient(httpClient)
-	ch := cache.New(time.Minute)
-	senseBoxIds := []string{"5cf9874107460b001b828c5b", "5ca4d598cbf9ae001a53051a", "59f8af62356823000fcc460c"}
 
 	http.Handle("/metrics", ochttp.WithRouteTag(pe, "/metrics"))
 	http.Handle("/health", ochttp.WithRouteTag(healthHandler(helloMsg), "/hello"))
-	http.Handle("/temperature", ochttp.WithRouteTag(temperatureHandler(client, ch, senseBoxIds), "/temperature"))
+	http.Handle("/temperature", ochttp.WithRouteTag(temperatureHandler(client, cache.New(time.Minute), c.SenseBoxIDs), "/temperature"))
 
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%s", port),
+		Addr:         fmt.Sprintf(":%d", c.ListenPort),
 		Handler:      &ochttp.Handler{},
 		ReadTimeout:  time.Second * 15,
 		WriteTimeout: time.Second * 60,
 		IdleTimeout:  time.Second * 60,
 	}
-	log.Printf("Starting service on port %s...\n", port)
+	log.Printf("Starting service on port %d...\n", c.ListenPort)
 
 	// Running in goroutine so we can shutdown gracefully
 	go func() {
@@ -90,15 +94,6 @@ func healthHandler(helloMsg string) http.HandlerFunc {
 			w.WriteHeader(500)
 		}
 	}
-}
-
-func portFromEnv() string {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-		log.Printf("PORT env var is not specified, using default: %s", port)
-	}
-	return port
 }
 
 func handleServerShutdown(srv *http.Server) {
