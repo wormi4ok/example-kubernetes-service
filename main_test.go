@@ -11,11 +11,11 @@ import (
 	"testing"
 )
 
-func TestTreeHandler(t *testing.T) {
-	srv := httptest.NewServer(helloHandler(helloMsg))
+func TestHealthHandler(t *testing.T) {
+	srv := httptest.NewServer(healthHandler(helloMsg))
 	defer srv.Close()
 
-	req := httptest.NewRequest(http.MethodGet, srv.URL+"/hello", nil)
+	req := httptest.NewRequest(http.MethodGet, srv.URL+"/health", nil)
 	req.RequestURI = "" // Request.RequestURI can't be set in client requests
 	res, err := srv.Client().Do(req)
 	if err != nil {
@@ -29,17 +29,16 @@ func TestTreeHandler(t *testing.T) {
 
 	// Check Content-Type header
 	responseCT := res.Header.Get("Content-Type")
-	if responseCT != "application/json" {
-		t.Errorf("Expected response content type = %s, actual = %s", "application/json", responseCT)
+	if responseCT != "text/plain" {
+		t.Errorf("Expected response content type = %s, actual = %s", "text/plain", responseCT)
 	}
 
 	// Compare response body with expected
-	expected := []byte("{\"helloMsg\":\"Infrastructure enables innovation\"}\n")
+	expected := []byte("Wherever you go, no matter what the weather, always bring your own sunshine.\n")
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil || bytes.Compare(expected, b) != 0 {
 		t.Errorf("Expected response body = %s, actual = %s", expected, b)
 	}
-
 }
 
 func TestPortFromEnv(t *testing.T) {

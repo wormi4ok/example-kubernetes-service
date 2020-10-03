@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -13,12 +13,15 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
+	"github.com/akyoto/cache"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
+
+	"github.com/wormi4ok/example-kubernetes-service/opensensemap"
 )
 
-const helloMsg = "Infrastructure enables innovation"
+const helloMsg = "Wherever you go, no matter what the weather, always bring your own sunshine.\n"
 const defaultPort = "8080"
 
 func main() {
@@ -41,10 +44,22 @@ func main() {
 			Measure:     ochttp.ServerLatency,
 			Aggregation: view.Count(),
 		},
+		ochttp.ClientSentBytesDistribution,
+		ochttp.ClientReceivedBytesDistribution,
+		ochttp.ClientRoundtripLatencyDistribution,
 	)
 
+	httpClient := &http.Client{
+		Timeout:   3 * time.Second,
+		Transport: &ochttp.Transport{}, // Collect metrics on the HTTP client
+	}
+	client := opensensemap.NewClient(httpClient)
+	ch := cache.New(time.Minute)
+	senseBoxIds := []string{"5cf9874107460b001b828c5b", "5ca4d598cbf9ae001a53051a", "59f8af62356823000fcc460c"}
+
 	http.Handle("/metrics", ochttp.WithRouteTag(pe, "/metrics"))
-	http.Handle("/hello", ochttp.WithRouteTag(helloHandler(helloMsg), "/hello"))
+	http.Handle("/health", ochttp.WithRouteTag(healthHandler(helloMsg), "/hello"))
+	http.Handle("/temperature", ochttp.WithRouteTag(temperatureHandler(client, ch, senseBoxIds), "/temperature"))
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", port),
@@ -65,21 +80,13 @@ func main() {
 	handleServerShutdown(srv)
 }
 
-type response struct {
-	HelloMsg string `json:"helloMsg"`
-}
-
-func helloHandler(helloMsg string) http.HandlerFunc {
+func healthHandler(helloMsg string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			w.WriteHeader(404)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json") // RFC-4627
+		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(200)
-		err := json.NewEncoder(w).Encode(response{HelloMsg: helloMsg})
+		_, err := io.WriteString(w, helloMsg)
 		if err != nil {
-			log.Printf("HelloHandler error: %v", err)
+			log.Printf("HealthHandler error: %v", err)
 			w.WriteHeader(500)
 		}
 	}
