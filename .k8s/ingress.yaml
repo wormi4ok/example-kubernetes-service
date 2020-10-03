@@ -5,13 +5,13 @@ metadata:
   name: example-ingress
 spec:
   rules:
-  - host: local.example.test
+  - host: local.weather.test
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: example-service
+            name: weather-service
             port:
               name: http

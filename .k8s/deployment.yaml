@@ -2,30 +2,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: example-kubernetes-service
+  name: weather-service
   labels:
-    app: example-app
+    app: weather-service-app
 spec:
   template:
     metadata:
-      name: example-pod
+      name: weather-service-pod
       labels:
-        app: example-app
+        app: weather-service-app
     spec:
       containers:
       - name: http
-        image: example-kubernetes-service:test
+        image: weather-service:test
         imagePullPolicy: Never # Use locally built image
+        env:
+        - name: SENSE_BOX_IDS
+          value: "5cf9874107460b001b828c5b,5ca4d598cbf9ae001a53051a,59f8af62356823000fcc460c"
         ports:
         - name: http
           containerPort: 8080
         readinessProbe:
           httpGet:
-            path: /hello
+            path: /temperature
             port: http
         livenessProbe:
           httpGet:
-            path: /hello
+            path: /health
             port: http
         resources:
           requests:
@@ -35,5 +38,5 @@ spec:
             memory: 100Mi
   selector:
     matchLabels:
-      app: example-app
+      app: weather-service-app
 

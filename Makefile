@@ -1,4 +1,4 @@
-APP:=$(notdir $(patsubst %/,%, $(CURDIR)))
+APP:=weather-service
 
 all: test build deploy
 
@@ -19,7 +19,7 @@ deploy:
 	kubectl wait --for=condition=available --timeout=60s deployment/$(APP)
 	echo ""
 	echo "Service is available. You can test in using curl:"
-	echo "curl -X GET http://$$(minikube ip):80/hello -H 'Host:local.example.test'"
+	echo "curl -X GET http://$$(minikube ip):80/temperature -H 'Host:local.weather.test'"
 
 ## destroy: delete entities deployed to kubernetes cluster
 destroy:
