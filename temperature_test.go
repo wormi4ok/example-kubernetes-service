@@ -7,6 +7,9 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+	"time"
+
+	"github.com/akyoto/cache"
 
 	"github.com/wormi4ok/example-kubernetes-service/opensensemap"
 )
@@ -14,7 +17,7 @@ import (
 func Test_temperatureHandler(t *testing.T) {
 	ids := []string{"5cf9874107460b001b828c5b", "5ca4d598cbf9ae001a53051a", "59f8af62356823000fcc460c"}
 	c := opensensemap.NewClient(http.DefaultClient)
-	srv := httptest.NewServer(temperatureHandler(c, ids))
+	srv := httptest.NewServer(temperatureHandler(c, cache.New(time.Minute), ids))
 	defer srv.Close()
 
 	req := httptest.NewRequest(http.MethodGet, srv.URL+"/temperature", nil)

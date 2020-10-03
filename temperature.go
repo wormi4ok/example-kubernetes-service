@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/akyoto/cache"
+
 	"github.com/wormi4ok/example-kubernetes-service/opensensemap"
 )
 
@@ -15,8 +17,19 @@ type response struct {
 	AverageTemperature float64 `json:"averageTemperature"`
 }
 
-func temperatureHandler(client *opensensemap.Client, boxIds []string) http.HandlerFunc {
+func temperatureHandler(client *opensensemap.Client, c *cache.Cache, boxIds []string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		cachedVal, found := c.Get("avg")
+		if found {
+			w.WriteHeader(http.StatusOK)
+			err := json.NewEncoder(w).Encode(response{AverageTemperature: cachedVal.(float64)})
+			if err != nil {
+				log.Printf("failed to send response: %s", err)
+				w.WriteHeader(500)
+			}
+			return
+		}
+
 		// Take data for the last 5 minutes
 		fromTime := time.Now().Add(-5 * time.Minute)
 		sensors, resp, err := client.BoxesData(r.Context(), boxIds, fromTime, time.Now(), opensensemap.PhenomenonTemperatur)
@@ -36,6 +49,7 @@ func temperatureHandler(client *opensensemap.Client, boxIds []string) http.Handl
 			log.Printf("failed to send response: %s", err)
 			w.WriteHeader(500)
 		}
+		c.Set("avg", avg, 1*time.Minute)
 	}
 }
 
