@@ -37,9 +37,12 @@ func temperatureHandler(client *opensensemap.Client, c *cache.Cache, boxIds []st
 			w.WriteHeader(http.StatusServiceUnavailable)
 			if resp != nil {
 				log.Printf("client got response: %s", resp.Status)
+			} else {
+				log.Printf("unexpected error from client: %s", err)
 			}
 			return
 		}
+
 		tt := currentTemperature(sensors)
 		avg := averageTemperature(tt)
 

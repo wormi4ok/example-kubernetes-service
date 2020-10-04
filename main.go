@@ -33,13 +33,49 @@ func main() {
 	c := new(Config)
 	envconfig.MustProcess("", c)
 
+	exporter := registerMetrics()
+	client := opensensemapClient()
+	handlerCache := cache.New(time.Minute)
+
+	http.Handle("/health", ochttp.WithRouteTag(healthHandler(helloMsg), "/hello"))
+	http.Handle("/metrics", ochttp.WithRouteTag(exporter, "/metrics"))
+	http.Handle("/temperature", ochttp.WithRouteTag(temperatureHandler(client, handlerCache, c.SenseBoxIDs), "/temperature"))
+
+	srv := &http.Server{
+		Addr:         fmt.Sprintf(":%d", c.ListenPort),
+		Handler:      &ochttp.Handler{},
+		ReadTimeout:  time.Second * 15,
+		WriteTimeout: time.Second * 60,
+		IdleTimeout:  time.Second * 60,
+	}
+	log.Printf("Starting service on port %d...\n", c.ListenPort)
+
+	// Running in a goroutine so we can shutdown gracefully
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Printf("%v\n", err)
+		}
+	}()
+
+	handleServerShutdown(srv)
+}
+
+func opensensemapClient() *opensensemap.Client {
+	httpClient := &http.Client{
+		Timeout:   3 * time.Second,
+		Transport: &ochttp.Transport{}, // Collect metrics on the HTTP client
+	}
+	return opensensemap.NewClient(httpClient)
+}
+
+func registerMetrics() *prometheus.Exporter {
 	pe, err := prometheus.NewExporter(prometheus.Options{
 		Namespace: "",
 	})
 	if err != nil {
 		log.Fatalf("Failed to create the Prometheus stats exporter: %v", err)
 	}
-	view.Register(
+	err = view.Register(
 		ochttp.ServerRequestCountView,
 		ochttp.ServerLatencyView,
 		ochttp.ServerRequestCountByMethod,
@@ -54,34 +90,10 @@ func main() {
 		ochttp.ClientReceivedBytesDistribution,
 		ochttp.ClientRoundtripLatencyDistribution,
 	)
-
-	httpClient := &http.Client{
-		Timeout:   3 * time.Second,
-		Transport: &ochttp.Transport{}, // Collect metrics on the HTTP client
+	if err != nil {
+		log.Fatalf("Failed to register metric views: %v", err)
 	}
-	client := opensensemap.NewClient(httpClient)
-
-	http.Handle("/metrics", ochttp.WithRouteTag(pe, "/metrics"))
-	http.Handle("/health", ochttp.WithRouteTag(healthHandler(helloMsg), "/hello"))
-	http.Handle("/temperature", ochttp.WithRouteTag(temperatureHandler(client, cache.New(time.Minute), c.SenseBoxIDs), "/temperature"))
-
-	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", c.ListenPort),
-		Handler:      &ochttp.Handler{},
-		ReadTimeout:  time.Second * 15,
-		WriteTimeout: time.Second * 60,
-		IdleTimeout:  time.Second * 60,
-	}
-	log.Printf("Starting service on port %d...\n", c.ListenPort)
-
-	// Running in goroutine so we can shutdown gracefully
-	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			log.Printf("%v\n", err)
-		}
-	}()
-
-	handleServerShutdown(srv)
+	return pe
 }
 
 func healthHandler(helloMsg string) http.HandlerFunc {
